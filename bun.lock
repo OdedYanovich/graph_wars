@@ -1,0 +1,13 @@
+{
+  "lockfileVersion": 1,
+  "workspaces": {
+    "": {
+      "dependencies": {
+        "cytoscape": "^3.33.0",
+      },
+    },
+  },
+  "packages": {
+    "cytoscape": ["cytoscape@3.33.0", "", {}, "sha512-2d2EwwhaxLWC8ahkH1PpQwCyu6EY3xDRdcEJXrLTb4fOUtVc+YWQalHU67rFS1a6ngj1fgv9dQLtJxP/KAFZEw=="],
+  }
+}
