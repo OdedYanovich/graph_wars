@@ -1,9 +1,8 @@
-import ffi/main
+import gleam/list
+import graph
 import lustre
 import lustre/attribute
 import lustre/element/html
-
-import gleam/javascript/array
 import lustre_css as lc
 
 pub fn main() {
@@ -12,10 +11,10 @@ pub fn main() {
     html.div(
       [
         attribute.styles([
-          lc.display(lc.Grid),
           lc.height(lc.VH(100)),
-          lc.place_items(lc.Center),
-          // lc.grid_template_columns(lc.Repeat(2, lc.Fr(1))),
+          // lc.display(lc.Grid),
+        // lc.place_items(lc.Center),
+        // lc.grid_template_columns(lc.Repeat(2, lc.Fr(1))),
         ]),
       ],
       [
@@ -34,10 +33,5 @@ pub fn main() {
     )
     |> lustre.element
     |> lustre.start("#app", Nil)
-  main.init_graph(
-    graph_id,
-    ["a", "b", "c", "d", "e"] |> array.from_list,
-    [#("a", "c"), #("a", "b"), #("d", "e")]
-      |> array.from_list,
-  )
+  graph.create(graph_id, list.range(0, 4), [#(0, 2), #(1, 0), #(3, 4)])
 }
