@@ -1,32 +1,41 @@
 import ffi
 import gleam/javascript/array
 import gleam/list
-import prng/random
+import gleam/set
+import prng/random as rng
 
-pub fn create(graph_id, nodes, edges) {
-  ffi.init_graph(graph_id, array.from_list(nodes), array.from_list(edges))
-}
-
-pub fn create2(
-  graph_id,
+pub fn create(
   variable_graph_nodes,
   variable_graph_edges,
   value_graph_nodes,
   value_graph_edges,
+  seed,
 ) {
-  let variable_graph_generator = random.int(0, value_graph_nodes)
-  let value_graph_generator =
-    random.int(value_graph_nodes, value_graph_nodes + 1 + value_graph_nodes)
+  let edges_gen = fn(first, last, count) {
+    let edge_gen = {
+      rng.fixed_size_set(rng.int(first, last), 2)
+      |> rng.map(fn(set) {
+        let assert [first, last] = set |> set.to_list |> list.shuffle
+        #(first, last)
+      })
+    }
+    rng.fixed_size_set(edge_gen, count)
+  }
+  let #(variable_edges, seed) =
+    edges_gen(1, variable_graph_nodes, variable_graph_edges) |> rng.step(seed)
+  let #(value_edges, seed) =
+    edges_gen(
+      variable_graph_nodes + 1,
+      variable_graph_nodes + value_graph_nodes,
+      value_graph_edges,
+    )
+    |> rng.step(seed)
   ffi.init_graph(
-    graph_id,
-    array.from_list(list.range(0, variable_graph_nodes + value_graph_nodes)),
-    array.from_list(edges),
+    list.range(1, variable_graph_nodes + value_graph_nodes) |> array.from_list,
+    variable_edges
+      |> set.union(value_edges)
+      |> set.to_list
+      |> array.from_list,
   )
+  seed
 }
-
-pub type Graph {
-  Graph(nodes: random.Generator(Int), edges: random.Generator(Int))
-}
-// pub type Graph {
-//   Graph(nodes: Int, edges: Int)
-// }

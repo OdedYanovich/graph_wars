@@ -1,5 +1,9 @@
 import cytoscape from 'cytoscape';
-export function initGraph(graphId, nodes, edges) {
+const graphId = 'g'
+export function graphID() {
+	return graphId
+}
+export function initGraph(nodes, edges) {
 	let edgeNagativeCounter = 0
 	let id = cytoscape({
 		container: document.getElementById(graphId),
@@ -29,8 +33,15 @@ export function initGraph(graphId, nodes, edges) {
 
 		layout: {
 			name: 'grid',
-			rows: 2,
-			cols: 2,
+			rows: 3,
+			cols: 4,
 		},
 	});
+}
+export function geTime() {
+	return Date.now()
+}
+export function initKeydownEvent(keyDown, keyUp) {
+	addEventListener("keydown", (event) => { if (!event.repeat) { return keyDown(event.key) } });
+	addEventListener("keyup", (event) => keyUp(event.key));
 }
