@@ -3,6 +3,7 @@ import gleam/dict
 import graph
 import lustre
 import lustre/attribute
+import lustre/effect
 import lustre/element/html
 import lustre_css as lc
 import prng/seed
@@ -41,8 +42,8 @@ pub fn main() {
         ],
       )
     }
-    |> lustre.simple(
-      fn(_) { sh.Model(seed.new(utils.get_time()), dict.new()) },
+    |> lustre.application(
+      graph.init,
       fn(model, msg: Msg) {
         let model = {
           use <- bool.guard(model.buttons |> dict.has_key(msg.key), model)
@@ -59,12 +60,12 @@ pub fn main() {
           }
           _ -> Nil
         }
-        model
+        #(model, effect.none())
       },
       _,
     )
     |> lustre.start("#app", Nil)
-  graph.create(5, 3, 3, 1, seed.new(utils.get_time()))
+  // graph.create(5, 3, 3, 1, seed.new(utils.get_time()))
   init_keydown_event(
     fn(key) { update |> lustre.send(lustre.dispatch(KeyDown(key))) },
     fn(key) { update |> lustre.send(lustre.dispatch(KeyUp(key))) },
