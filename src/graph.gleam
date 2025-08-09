@@ -1,4 +1,3 @@
-import ffi
 import gleam/javascript/array
 import gleam/list
 import gleam/set
@@ -30,7 +29,7 @@ pub fn create(
       value_graph_edges,
     )
     |> rng.step(seed)
-  ffi.init_graph(
+  init_graph(
     list.range(1, variable_graph_nodes + value_graph_nodes) |> array.from_list,
     variable_edges
       |> set.union(value_edges)
@@ -39,3 +38,9 @@ pub fn create(
   )
   seed
 }
+
+@external(javascript, "./make_graph.mjs", "initGraph")
+fn init_graph(nodes: array.Array(Int), edges: array.Array(#(Int, Int))) -> Nil
+
+@external(javascript, "./make_graph.mjs", "remove")
+pub fn remove() -> Nil

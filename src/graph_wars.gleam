@@ -1,13 +1,13 @@
-import ffi
 import gleam/bool
 import gleam/dict
-import gleam/dynamic/decode
 import graph
 import lustre
 import lustre/attribute
 import lustre/element/html
 import lustre_css as lc
 import prng/seed
+import sheared as sh
+import utils
 
 pub fn main() {
   let assert Ok(update) =
@@ -26,11 +26,11 @@ pub fn main() {
             [
               attribute.styles([]),
             ],
-            [html.text("(c)hange edges")],
+            [html.text("(a)dd edges"), html.text("(r)emove edges")],
           ),
           html.div(
             [
-              attribute.id(ffi.graph_id()),
+              attribute.id(graph_id()),
               attribute.styles([
                 lc.width(lc.Precent(100)),
                 lc.height(lc.Precent(100)),
@@ -42,31 +42,45 @@ pub fn main() {
       )
     }
     |> lustre.simple(
-      fn(_) { Model(seed.new(ffi.get_time()), dict.new()) },
-      fn(model, msg) {
-        use <- bool.guard(model.buttons |> dict.has_key(msg), model)
-        Model(..model, buttons: model.buttons |> dict.insert(msg, True))
+      fn(_) { sh.Model(seed.new(utils.get_time()), dict.new()) },
+      fn(model, msg: Msg) {
+        let model = {
+          use <- bool.guard(model.buttons |> dict.has_key(msg.key), model)
+          sh.Model(
+            ..model,
+            buttons: model.buttons |> dict.insert(msg.key, True),
+          )
+        }
+        case msg {
+          KeyDown(key) if key == "c" -> {
+            use <- bool.guard(key != "c", Nil)
+            graph.remove()
+            Nil
+          }
+          _ -> Nil
+        }
+        model
       },
+      _,
     )
     |> lustre.start("#app", Nil)
-  graph.create(5, 3, 3, 1, seed.new(ffi.get_time()))
+  graph.create(5, 3, 3, 1, seed.new(utils.get_time()))
   init_keydown_event(
     fn(key) { update |> lustre.send(lustre.dispatch(KeyDown(key))) },
     fn(key) { update |> lustre.send(lustre.dispatch(KeyUp(key))) },
   )
 }
 
-type Model {
-  Model(seed: seed.Seed, buttons: dict.Dict(String, Bool))
-}
-
 type Msg {
-  KeyDown(String)
-  KeyUp(String)
+  KeyDown(key: String)
+  KeyUp(key: String)
 }
 
-@external(javascript, "./ffi/ffi.mjs", "initKeydownEvent")
+@external(javascript, "./input.mjs", "initKeydownEvent")
 fn init_keydown_event(
   key_down: fn(String) -> Nil,
   key_up: fn(String) -> Nil,
 ) -> Nil
+
+@external(javascript, "./make_graph.mjs", "graphID")
+fn graph_id() -> String
