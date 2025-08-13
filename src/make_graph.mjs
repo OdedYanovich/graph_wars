@@ -1,10 +1,9 @@
 import cytoscape from 'cytoscape';
 let id
-export function initGraph(nodes, edges) {
-	let edgeNagativeCounter = 0
+export function initGraph(elements) {
 	id = cytoscape({
 		container: document.getElementById(graphId),
-		elements: nodes.map((e) => { return { data: { id: e } } }).concat(edges.map((e) => { edgeNagativeCounter -= 1; return { data: { id: edgeNagativeCounter, source: e[0], target: e[1] } } })),
+		elements: elements,
 		style: [
 			{
 				selector: 'node',

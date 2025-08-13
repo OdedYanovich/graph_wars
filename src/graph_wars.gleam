@@ -6,9 +6,7 @@ import lustre/attribute
 import lustre/effect
 import lustre/element/html
 import lustre_css as lc
-import prng/seed
 import sheared as sh
-import utils
 
 pub fn main() {
   let assert Ok(update) =
@@ -23,12 +21,7 @@ pub fn main() {
           ]),
         ],
         [
-          html.div(
-            [
-              attribute.styles([]),
-            ],
-            [html.text("(a)dd edges"), html.text("(r)emove edges")],
-          ),
+          html.ol([], [html.text("(a)dd edges"), html.text("(r)emove edges")]),
           html.div(
             [
               attribute.id(graph_id()),
@@ -53,7 +46,7 @@ pub fn main() {
           )
         }
         case msg {
-          KeyDown(key) if key == "c" -> {
+          KeyDown(key) -> {
             use <- bool.guard(key != "c", Nil)
             graph.remove()
             Nil
@@ -65,7 +58,6 @@ pub fn main() {
       _,
     )
     |> lustre.start("#app", Nil)
-  // graph.create(5, 3, 3, 1, seed.new(utils.get_time()))
   init_keydown_event(
     fn(key) { update |> lustre.send(lustre.dispatch(KeyDown(key))) },
     fn(key) { update |> lustre.send(lustre.dispatch(KeyUp(key))) },
