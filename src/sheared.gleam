@@ -12,6 +12,5 @@ pub type Model {
 }
 
 pub type Graph {
-  Graph(node_count: Int, edges: set.Set(#(Int, Int)))
-  Graph2(node_count: Int, edges: set.Set(Int))
+  Graph(node_count: Int, edges: set.Set(Int))
 }

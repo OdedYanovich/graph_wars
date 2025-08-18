@@ -1,7 +1,8 @@
 import cytoscape from 'cytoscape';
-let id
+let cy
+const graphId = 'g'
 export function initGraph(elements) {
-	id = cytoscape({
+	cy = cytoscape({
 		container: document.getElementById(graphId),
 		elements: elements,
 		style: [
@@ -34,10 +35,12 @@ export function initGraph(elements) {
 		},
 	});
 }
-export function remove() {
-	id.$('#-3').remove()
+export function removeElement(id) {
+	cy.$('#' + id).remove()
 }
-const graphId = 'g'
+export function addElement(element) {
+	cy.add(element)
+}
 export function graphID() {
 	return graphId
 }

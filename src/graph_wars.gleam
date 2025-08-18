@@ -47,9 +47,12 @@ pub fn main() {
         }
         case msg {
           KeyDown(key) -> {
-            use <- bool.guard(key != "c", Nil)
-            graph.remove()
-            Nil
+            case key {
+              "c" -> graph.remove(-3)
+              "d" -> graph.add_edge(-3, 2, 5)
+              _ -> Nil
+              // "u" -> graph.update(model)
+            }
           }
           _ -> Nil
         }
