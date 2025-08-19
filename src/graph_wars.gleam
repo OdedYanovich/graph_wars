@@ -45,18 +45,20 @@ pub fn main() {
             buttons: model.buttons |> dict.insert(msg.key, True),
           )
         }
-        case msg {
-          KeyDown(key) -> {
-            case key {
-              "c" -> graph.remove(-3)
-              "d" -> graph.add_edge(-3, 2, 5)
-              _ -> Nil
-              // "u" -> graph.update(model)
+        #(
+          case msg {
+            KeyDown(key) -> {
+              case key {
+                "u" -> graph.update(model)
+                // "c" -> graph.remove(-3)
+                // "d" -> graph.add_edge(-3, 2, 5)
+                _ -> model
+              }
             }
-          }
-          _ -> Nil
-        }
-        #(model, effect.none())
+            _ -> model
+          },
+          effect.none(),
+        )
       },
       _,
     )

@@ -12,5 +12,21 @@ pub type Model {
 }
 
 pub type Graph {
-  Graph(node_count: Int, edges: set.Set(Int))
+  Graph(node_count: Int, edge_count: Int, edges: set.Set(Id(Edge)))
+}
+
+pub type Id(t) {
+  Id(Int)
+}
+
+pub type Node
+
+pub type Edge
+
+type EdgeConstructor {
+  EdgeConstructor(Int)
+}
+
+type EdgeBlueprint {
+  EdgeBlueprint(Int)
 }
