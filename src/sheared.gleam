@@ -1,32 +1,18 @@
-import gleam/dict
-import gleam/set
+import edges as ed
 import prng/seed
 
 pub type Model {
   Model(
     seed: seed.Seed,
-    buttons: dict.Dict(String, Bool),
-    variable_graph: Graph,
-    value_graph: Graph,
+    // buttons: dict.Dict(String, Bool),
+    variable_graph: ed.Graph,
+    value_graph: ed.Graph,
   )
 }
-
-pub type Graph {
-  Graph(node_count: Int, edge_count: Int, edges: set.Set(Id(Edge)))
-}
-
-pub type Id(t) {
-  Id(Int)
-}
-
-pub type Node
-
-pub type Edge
-
-type EdgeConstructor {
-  EdgeConstructor(Int)
-}
-
-type EdgeBlueprint {
-  EdgeBlueprint(Int)
-}
+// let model = {
+//   use <- bool.guard(model.buttons |> dict.has_key(msg.key), model)
+//   sh.Model(
+//     ..model,
+//     buttons: model.buttons |> dict.insert(msg.key, True),
+//   )
+// }

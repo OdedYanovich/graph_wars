@@ -1,4 +1,4 @@
-import gleam/dict
+import edges as ed
 import gleam/int
 import gleam/javascript/array
 import gleam/json
@@ -9,90 +9,43 @@ import gleam/set
 import lustre/effect
 import prng/random as rng
 import prng/seed
-import sheared.{type Edge, type Id, type Node, Id} as sh
+import sheared as sh
 import utils
 
 pub fn init(_flag) {
-  let variable_graph_node_count = 5
-  let variable_graph_edge_count = 3
-  let value_graph_node_count = 3
-  let value_graph_edge_count = 1
-  let edges_gen = fn(first, last, count, seed) {
-    rng.int(first, last * { last - 1 })
-    |> rng.map(Id)
-    |> rng.fixed_size_set(count)
-    |> rng.step(seed)
-  }
-  let #(variable_graph_edges_ids, seed) =
-    edges_gen(
-      0,
-      variable_graph_node_count - 1,
-      variable_graph_edge_count,
-      seed.new(utils.get_time()),
-    )
-  let #(value_graph_edges_ids, seed) =
-    edges_gen(0, value_graph_node_count - 1, value_graph_edge_count, seed)
+  let #(variable_graph, seed) = ed.gen_graph(5, 3, seed.new(utils.get_time()))
+  let #(value_graph, seed) = ed.gen_graph(3, 1, seed)
   #(
-    sh.Model(
-      seed,
-      dict.new(),
-      variable_graph: sh.Graph(
-        variable_graph_node_count,
-        variable_graph_edge_count,
-        variable_graph_edges_ids,
-      ),
-      value_graph: sh.Graph(
-        value_graph_node_count,
-        value_graph_edge_count,
-        value_graph_edges_ids,
-      ),
-    ),
-    effect.after_paint(fn(_, _) {
+    sh.Model(seed, variable_graph:, value_graph:),
+    fn(_, _) {
       init_graph(
-        list.range(0, variable_graph_node_count + value_graph_node_count - 1)
-        |> list.map(new_node)
-        |> list.append(
-          list.map_fold(
+        [
+          list.range(0, variable_graph.node_count + value_graph.node_count - 1)
+            |> list.map(ed.new_node),
+          list.map(
             set.union(
-              variable_graph_edges_ids
-                |> set.map(edge_id_to_blueprint(_, variable_graph_node_count, 0)),
-              value_graph_edges_ids
-                |> set.map(edge_id_to_blueprint(
+              variable_graph.edges
+                |> set.map(ed.edge_id_to_blueprint(
                   _,
-                  value_graph_node_count,
-                  variable_graph_node_count,
+                  variable_graph.node_count,
+                  0,
+                )),
+              value_graph.edges
+                |> set.map(ed.edge_id_to_blueprint(
+                  _,
+                  value_graph.node_count,
+                  variable_graph.node_count,
                 )),
             )
               |> set.to_list,
-            -1,
-            fn(id, edge_blueprint) { #(id - 1, new_edge(edge_blueprint)) },
-          ).1,
-        )
+            ed.new_edge,
+          ),
+        ]
+        |> list.flatten
         |> array.from_list,
       )
-    }),
-  )
-}
-
-type EdgeBlueprint {
-  EdgeBlueprint(id: Id(Edge), source: Id(Node), target: Id(Node))
-  // EdgeBlueprint(id: Int, source: Int, target: Int)
-}
-
-fn edge_id_to_blueprint(id, node_count, offset) {
-  let Id(id_temp) = id
-  let source = id_temp / node_count
-  let target = id_temp % node_count
-  EdgeBlueprint(
-    id,
-    source
-    + offset
-    + case source < target {
-      True -> 0
-      False -> 1
     }
-      |> Id,
-    target + offset |> Id,
+      |> effect.after_paint,
   )
 }
 
@@ -121,26 +74,25 @@ pub fn update(model: sh.Model) {
       model.variable_graph.edges
         |> set.to_list
         |> list.map(fn(id) {
-          let Id(id) = id
+          let ed.Id(id) = id
           id
         })
         |> list.sort(int.compare)
-        |> list.map(Id),
+        |> list.map(ed.Id),
       new_variable_edge_constructor,
       removed_variable_edge_constructor,
       model.variable_graph.edge_count,
     )
-  // let added_edge =
-  add_edge(edge_id_to_blueprint(
+  ed.add_edge(ed.edge_id_to_blueprint(
     added_edge_id,
     model.variable_graph.node_count,
     0,
   ))
-  remove(removed_edge_id)
+  ed.remove(removed_edge_id)
   sh.Model(
     ..model,
     seed:,
-    variable_graph: sh.Graph(
+    variable_graph: ed.Graph(
       ..model.variable_graph,
       edges: model.variable_graph.edges
         |> set.insert(added_edge_id)
@@ -149,16 +101,19 @@ pub fn update(model: sh.Model) {
   )
 }
 
+@external(javascript, "./make_graph.mjs", "initGraph")
+fn init_graph(elements: array.Array(json.Json)) -> Nil
+
 fn change_edges(
-  edges: List(Id(Edge)),
+  edges: List(ed.Id(ed.Edge)),
   adding_target,
   removing_target,
   max_edge_id,
 ) {
   echo #(adding_target, removing_target, max_edge_id)
   let assert Error(added_removed_ids) = {
-    use #(added_id, passed_edge_count, removed_id), Id(edge) <- list.try_fold(
-      edges |> list.append([Id(max_edge_id)]),
+    use #(added_id, passed_edge_count, removed_id), ed.Id(edge) <- list.try_fold(
+      edges |> list.append([ed.Id(max_edge_id)]),
       #(Error([]), 0, None),
     )
     echo #(added_id, passed_edge_count, removed_id)
@@ -196,7 +151,7 @@ fn change_edges(
       Ok(#(add, passed_edge_count + 1, remove))
     }
     case added_id, removed_id {
-      Ok(added), Some(removed) -> Error(#(Id(added), Id(-removed)))
+      Ok(added), Some(removed) -> Error(#(ed.Id(added), ed.Id(-removed)))
       Error(available), Some(removed) ->
         next_iteration(check_addtion(available), Some(removed))
       Ok(added), None -> next_iteration(Ok(added), check_removal())
@@ -206,7 +161,6 @@ fn change_edges(
   }
   echo added_removed_ids
 }
-
 // potential_edges=range(0,edges)
 // current_edges:List(Int)
 // selected_added=rand(potential_edges)
@@ -233,39 +187,3 @@ fn change_edges(
 // 5 [2,5,7]
 // 5 [2,4,5,7]
 // 5 [2,4,5,9]
-@external(javascript, "./make_graph.mjs", "initGraph")
-fn init_graph(elements: array.Array(json.Json)) -> Nil
-
-fn remove(id: Id(any)) -> Nil {
-  let Id(id) = id
-  remove_element(id)
-}
-
-fn add_edge(blueprint) {
-  add_element(new_edge(blueprint))
-}
-
-fn new_edge(blueprint) {
-  let EdgeBlueprint(Id(id), Id(source), Id(target)) = blueprint
-
-  json.object([
-    #(
-      "data",
-      json.object([
-        #("id", json.int(id)),
-        #("source", json.int(source)),
-        #("target", json.int(target)),
-      ]),
-    ),
-  ])
-}
-
-fn new_node(id) {
-  json.object([#("data", json.object([#("id", json.int(id))]))])
-}
-
-@external(javascript, "./make_graph.mjs", "removeElement")
-fn remove_element(id: Int) -> Nil
-
-@external(javascript, "./make_graph.mjs", "addElement")
-fn add_element(element: json) -> Nil

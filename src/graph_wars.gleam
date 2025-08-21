@@ -6,7 +6,6 @@ import lustre/attribute
 import lustre/effect
 import lustre/element/html
 import lustre_css as lc
-import sheared as sh
 
 pub fn main() {
   let assert Ok(update) =
@@ -38,24 +37,15 @@ pub fn main() {
     |> lustre.application(
       graph.init,
       fn(model, msg: Msg) {
-        let model = {
-          use <- bool.guard(model.buttons |> dict.has_key(msg.key), model)
-          sh.Model(
-            ..model,
-            buttons: model.buttons |> dict.insert(msg.key, True),
-          )
-        }
         #(
           case msg {
             KeyDown(key) -> {
               case key {
                 "u" -> graph.update(model)
-                // "c" -> graph.remove(-3)
-                // "d" -> graph.add_edge(-3, 2, 5)
                 _ -> model
               }
             }
-            _ -> model
+            KeyUp(_) -> model
           },
           effect.none(),
         )

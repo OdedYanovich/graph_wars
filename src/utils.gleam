@@ -6,6 +6,14 @@ import gleam/list.{reverse}
 pub fn get_time() -> Int
 
 /// gleam/list.{index_map} with the ability to end early
+/// #Example
+/// ```gleam
+/// use x, index <- utils.try_index_map([1, 2, 3])
+///   case x == index + 1 {
+///     True -> Ok(2 * x)
+///     False -> Error(x)
+///   }
+///```
 pub fn try_index_map(
   list: List(a),
   with fun: fn(a, Int) -> Result(b, e),
