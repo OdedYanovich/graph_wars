@@ -1,6 +1,9 @@
 import cytoscape from 'cytoscape';
 let cy
 const graphId = 'g'
+export function graphID() {
+	return graphId
+}
 export function initGraph(elements) {
 	cy = cytoscape({
 		container: document.getElementById(graphId),
@@ -41,6 +44,9 @@ export function removeElement(id) {
 export function addElement(element) {
 	cy.add(element)
 }
-export function graphID() {
-	return graphId
+export function clearGraph() {
+	cy.elements().remove()
+}
+export function organize() {
+	cy.layout({ name: 'grid' }).run()
 }

@@ -1,11 +1,12 @@
-import gleam/bool
-import gleam/dict
+// import gleam/bool
+// import gleam/dict
+import edges
 import graph
 import lustre
 import lustre/attribute
 import lustre/effect
 import lustre/element/html
-import lustre_css as lc
+import styles as lc
 
 pub fn main() {
   let assert Ok(update) =
@@ -41,7 +42,24 @@ pub fn main() {
           case msg {
             KeyDown(key) -> {
               case key {
-                "u" -> graph.update(model)
+                "u" -> graph.update(model, 4, 2, 5, 1)
+                "i" -> graph.update(model, 5, 3, 3, 1)
+                "o" -> {
+                  edges.add_edge(edges.edge_id_to_blueprint(edges.Id(1), 8, 0))
+                  model
+                }
+                "p" -> {
+                  edges.remove(edges.Id(-2))
+                  model
+                }
+                "c" -> {
+                  edges.add_node(8)
+                  model
+                }
+                "v" -> {
+                  edges.remove(edges.Id(8))
+                  model
+                }
                 _ -> model
               }
             }

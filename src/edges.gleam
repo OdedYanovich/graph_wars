@@ -43,6 +43,10 @@ pub fn add_edge(blueprint) {
   add_element(new_edge(blueprint))
 }
 
+pub fn add_node(blueprint) {
+  add_element(new_node(blueprint))
+}
+
 pub fn new_node(id) {
   json.object([#("data", json.object([#("id", json.int(id))]))])
 }
