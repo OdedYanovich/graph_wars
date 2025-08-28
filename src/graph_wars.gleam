@@ -1,6 +1,7 @@
 // import gleam/bool
 // import gleam/dict
 import edges
+import gleam/list
 import graph
 import lustre
 import lustre/attribute
@@ -21,7 +22,25 @@ pub fn main() {
           ]),
         ],
         [
-          html.ol([], [html.text("(a)dd edges"), html.text("(r)emove edges")]),
+          html.div(
+            [
+              attribute.styles([
+                lc.display(lc.Grid),
+                lc.place_items(lc.Center),
+                lc.grid_template_rows(lc.Repeat(5, lc.Fr(1))),
+                lc.width(lc.Precent(100)),
+                lc.height(lc.Precent(100)),
+              ]),
+            ],
+            [
+              html.text("i to set ragular graph"),
+              html.text("u to set large graph"),
+              html.text("o to add an edge"),
+              html.text("p to remove the edge"),
+              html.text("Always press o before p, if you didn't, then refrash"),
+            ]
+              |> list.map(fn(e) { html.div([], [e]) }),
+          ),
           html.div(
             [
               attribute.id(graph_id()),
@@ -50,14 +69,6 @@ pub fn main() {
                 }
                 "p" -> {
                   edges.remove(edges.Id(-2))
-                  model
-                }
-                "c" -> {
-                  edges.add_node(8)
-                  model
-                }
-                "v" -> {
-                  edges.remove(edges.Id(8))
                   model
                 }
                 _ -> model
